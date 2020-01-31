@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com</groupId>
-	<artifactId>user-security</artifactId>
+	<artifactId>simple-oauth2</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>user-security</name>
+	<name>simple-oauth2</name>
 	<description>Demo project for Spring Boot</description>
 
 	<properties>

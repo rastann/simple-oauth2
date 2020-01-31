@@ -28,6 +28,4 @@ public class User extends BaseEntity {
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Role> roles;
 
-    private boolean active;
-
 }

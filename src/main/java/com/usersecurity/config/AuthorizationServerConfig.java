@@ -1,10 +1,12 @@
 package com.usersecurity.config;
 
 import java.util.StringJoiner;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.builders.InMemoryClientDetailsServiceBuilder;
@@ -13,6 +15,8 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.expression.OAuth2WebSecurityExpressionHandler;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 
 import com.usersecurity.entities.Role;
 import com.usersecurity.entities.User;
@@ -38,7 +42,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Autowired
     private UserService userService;
 
-    private static final String RESOURCE_ID = "user-security";
+    private static final String RESOURCE_ID = "simple-oauth2";
 
     /**
      * Setting up the endpointsconfigurer authentication manager.
@@ -48,8 +52,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
      */
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-        endpoints
-                .authenticationManager(authenticationManager);
+        endpoints.authenticationManager(authenticationManager);
     }
 
     /**
@@ -57,51 +60,53 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
      * @param clients
      * @throws Exception
      */
-//    @Override
-//    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-//        clients
-//                .inMemory()
-//                .withClient("my-trusted-client")
-//                .authorizedGrantTypes("client_credentials", "password")
-//                .authorities("ROLE_CLIENT","ROLE_TRUSTED_CLIENT")
-//                .scopes("read","write","trust")
-//                .resourceIds("oauth2-resource")
-//                .accessTokenValiditySeconds(5000)
-//                .secret(passwordEncoder.encode("secret"));
-//    }
 
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         InMemoryClientDetailsServiceBuilder builder = clients.inMemory();
-        userService.users().forEach(user -> configureForRetailer(builder, user));
+//        builder
+//            .withClient("user")
+//            .authorizedGrantTypes("client_credentials", "password")
+//            .authorities("ADMIN")
+//            .scopes("full", "public")
+//            .resourceIds("oauth2-resource")
+//            .accessTokenValiditySeconds(5000)
+//            .secret(passwordEncoder.encode("user"));
+        userService.users().forEach(user -> configureForUser(builder, user));
     }
 
     @SneakyThrows
-    private void configureForRetailer(InMemoryClientDetailsServiceBuilder builder, User user) {
+    private void configureForUser(InMemoryClientDetailsServiceBuilder builder, User user) {
         StringJoiner joiner = new StringJoiner(",");
         for (Role role : user.getRoles()) {
             joiner.add(role.getName());
         }
-        builder.withClient(user.getUsername())
-            .scopes("full", "public")
-            .resourceIds(RESOURCE_ID)
+        builder
+            .withClient(user.getUsername())
             .authorizedGrantTypes("client_credentials", "password")
             .authorities(joiner.toString())
-            .secret(passwordEncoder.encode(user.getPassword()))
-            .accessTokenValiditySeconds(5000);
+            .scopes("full", "public")
+            .resourceIds("oauth2-resource")
+            .accessTokenValiditySeconds(5000)
+            .secret(passwordEncoder.encode(user.getPassword()));
     }
 
     /**
      * We here defines the security constraints on the token endpoint.
      * We set it up to isAuthenticated, which returns true if the user is not anonymous
-     * @param security the AuthorizationServerSecurityConfigurer.
+     * @param oauthServer the AuthorizationServerSecurityConfigurer.
      * @throws Exception
      */
     @Override
-    public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
-        security
-                .checkTokenAccess("isAuthenticated()");
+    public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
+        oauthServer.tokenKeyAccess("permitAll()").checkTokenAccess("permitAll()");
     }
 
+    @Bean
+    public OAuth2WebSecurityExpressionHandler oAuth2WebSecurityExpressionHandler(ApplicationContext applicationContext) {
+        OAuth2WebSecurityExpressionHandler expressionHandler = new OAuth2WebSecurityExpressionHandler();
+        expressionHandler.setApplicationContext(applicationContext);
+        return expressionHandler;
+    }
 
 }
