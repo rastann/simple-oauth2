@@ -42,7 +42,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Autowired
     private UserService userService;
 
-    private static final String RESOURCE_ID = "simple-oauth2";
+    private static final String RESOURCE_ID = "oauth2-resource";
 
     /**
      * Setting up the endpointsconfigurer authentication manager.
@@ -69,7 +69,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
             .authorizedGrantTypes("client_credentials", "password")
             .authorities("ADMIN")
             .scopes("full", "public")
-            .resourceIds("oauth2-resource")
+            .resourceIds(RESOURCE_ID)
             .accessTokenValiditySeconds(5000)
             .secret(passwordEncoder.encode("secret"));
     }
