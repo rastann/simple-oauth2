@@ -25,7 +25,7 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
                 .antMatchers("/private/**").authenticated();
 
         http.authorizeRequests()
-            .antMatchers("/cia").access("hasAuthority('USER') and #oauth2.hasScope('full')")
+            .antMatchers("/cia").access("hasAuthority('USER')")
             .antMatchers("/fbi").access("hasAuthority('ADMIN') and #oauth2.hasScope('full')");
     }
 

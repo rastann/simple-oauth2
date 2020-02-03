@@ -64,31 +64,14 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         InMemoryClientDetailsServiceBuilder builder = clients.inMemory();
-//        builder
-//            .withClient("user")
-//            .authorizedGrantTypes("client_credentials", "password")
-//            .authorities("ADMIN")
-//            .scopes("full", "public")
-//            .resourceIds("oauth2-resource")
-//            .accessTokenValiditySeconds(5000)
-//            .secret(passwordEncoder.encode("user"));
-        userService.users().forEach(user -> configureForUser(builder, user));
-    }
-
-    @SneakyThrows
-    private void configureForUser(InMemoryClientDetailsServiceBuilder builder, User user) {
-        StringJoiner joiner = new StringJoiner(",");
-        for (Role role : user.getRoles()) {
-            joiner.add(role.getName());
-        }
         builder
-            .withClient(user.getUsername())
+            .withClient("fbiuser")
             .authorizedGrantTypes("client_credentials", "password")
-            .authorities(joiner.toString())
+            .authorities("ADMIN")
             .scopes("full", "public")
             .resourceIds("oauth2-resource")
             .accessTokenValiditySeconds(5000)
-            .secret(passwordEncoder.encode(user.getPassword()));
+            .secret(passwordEncoder.encode("secret"));
     }
 
     /**
